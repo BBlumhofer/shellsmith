@@ -162,3 +162,12 @@ async def test_async_client_smoke():
 
     with pytest.raises(RuntimeError):
         await client.get_shells()
+
+
+@pytest.mark.asyncio
+async def test_async_client_pages_shells():
+    async with AsyncClient() as client:
+        first = await client.get_shells(limit=1)
+        cursor = first["paging_metadata"]["cursor"]
+        second = await client.get_shells(limit=1, cursor=cursor)
+    assert first["result"][0]["id"] != second["result"][0]["id"]

@@ -13,10 +13,17 @@ from shellsmith.types import JSON
 # ───────────────────────────────────── Shells ─────────────────────────────────────────
 
 
-def get_shells(host: str = config.host) -> dict:
+def get_shells(
+    host: str = config.host,
+    *,
+    limit: int | None = None,
+    cursor: str | None = None,
+) -> dict:
     """Retrieve all shells.
 
     Args:
+        limit: Maximum number of Shells per page, the server default if omitted.
+        cursor: Cursor of the next page, from the previous ``paging_metadata``.
         host: Base URL of the AAS server. Defaults to configured host.
 
     Returns:
@@ -26,7 +33,7 @@ def get_shells(host: str = config.host) -> dict:
         HTTPError: If the GET request fails.
     """
     with Client(host=host) as client:
-        return client.get_shells()
+        return client.get_shells(limit=limit, cursor=cursor)
 
 
 def get_shell(shell_id: str, encode: bool = True, host: str = config.host) -> dict:
@@ -169,10 +176,17 @@ def delete_submodel_ref(
 # ─────────────────────────────────── Sync Submodels ───────────────────────────────────
 
 
-def get_submodels(host: str = config.host) -> dict:
+def get_submodels(
+    host: str = config.host,
+    *,
+    limit: int | None = None,
+    cursor: str | None = None,
+) -> dict:
     """Retrieve all submodels.
 
     Args:
+        limit: Maximum number of Submodels per page, the server default if omitted.
+        cursor: Cursor of the next page, from the previous ``paging_metadata``.
         host: Base URL of the AAS server. Defaults to configured host.
 
     Returns:
@@ -182,7 +196,7 @@ def get_submodels(host: str = config.host) -> dict:
         HTTPError: If the GET request fails.
     """
     with Client(host=host) as client:
-        return client.get_submodels()
+        return client.get_submodels(limit=limit, cursor=cursor)
 
 
 def get_submodel(
@@ -493,6 +507,34 @@ def update_submodel_element_value(
     """
     with Client(host=host) as client:
         client.update_submodel_element_value(submodel_id, id_short_path, value, encode)
+
+
+# ───────────────────────────────────── Discovery ──────────────────────────────────────
+
+
+def lookup_shells(
+    asset_ids: list[dict[str, str]],
+    host: str = config.discovery_host,
+    *,
+    limit: int | None = None,
+    cursor: str | None = None,
+) -> dict:
+    """Look up the IDs of the Shells linked to all given asset IDs.
+
+    Args:
+        asset_ids: Specific asset IDs as ``{"name": ..., "value": ...}`` dicts.
+        host: Base URL of the AAS Discovery Service. Defaults to configured host.
+        limit: Maximum number of Shell IDs per page, the server default if omitted.
+        cursor: Cursor of the next page, from the previous ``paging_metadata``.
+
+    Returns:
+        A dictionary with the matching Shell IDs under ``result``.
+
+    Raises:
+        HTTPError: If the GET request fails.
+    """
+    with Client(host=host) as client:
+        return client.lookup_shells(asset_ids, limit=limit, cursor=cursor)
 
 
 # ─────────────────────────────────── Sync Service ─────────────────────────────────────

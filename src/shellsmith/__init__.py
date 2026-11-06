@@ -25,6 +25,7 @@ from .api import (
     get_submodel_value,
     get_submodels,
     is_healthy,
+    lookup_shells,
     update_shell,
     update_submodel,
     update_submodel_element,

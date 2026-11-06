@@ -111,6 +111,19 @@ shellsmith.delete_submodel("https://example.com/submodels/def456")
 
 ---
 
+### Discovery
+
+Served by the AAS Discovery Service (`SHELLSMITH_BASYX_DISCOVERY_HOST`, default `http://localhost:8084`).
+
+| Method | Endpoint                         | Function        |
+|--------|----------------------------------|-----------------|
+| GET    | `/lookup/shells?assetIds=...`    | `lookup_shells` |
+
+`get_shells`, `get_submodels` and `lookup_shells` return one page; pass `limit` and the `cursor` from
+`paging_metadata` for the next one.
+
+---
+
 ### Upload
 
 | Method | Endpoint  | Function                              |

@@ -250,3 +250,10 @@ def test_get_submodel_element_value(semitrailer):
     submodel_id = semitrailer.product_identification.id
     value = shellsmith.get_submodel_element_value(submodel_id, "ProductName")
     assert value == "Semitrailer"
+
+
+def test_get_submodels_pages_with_limit_and_cursor():
+    first = shellsmith.get_submodels(limit=3)
+    assert len(first["result"]) == 3
+    rest = shellsmith.get_submodels(limit=3, cursor=first["paging_metadata"]["cursor"])
+    assert len(rest["result"]) == 1  # 4 submodels in aas/

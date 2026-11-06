@@ -22,6 +22,15 @@ services:
       submodel-registry:
         condition: service_healthy
 
+  aas-discovery:
+    image: eclipsebasyx/aas-discovery:2.0.0-SNAPSHOT
+    ports:
+      - "8084:8081"
+    environment:
+      BASYX_BACKEND: InMemory
+      BASYX_CORS_ALLOWED_ORIGINS: "*"
+      BASYX_CORS_ALLOWED_METHODS: "GET,POST,PATCH,DELETE,PUT,OPTIONS,HEAD"
+
   aas-registry:
     image: eclipsebasyx/aas-registry-log-mem:2.0.0-SNAPSHOT
     ports:

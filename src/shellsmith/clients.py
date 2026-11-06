@@ -1,5 +1,6 @@
 """Sync and async client classes for AAS operations."""
 
+import json
 import mimetypes
 from pathlib import Path
 from types import TracebackType
@@ -12,7 +13,7 @@ from httpx import Response
 from shellsmith.auth import Auth
 from shellsmith.config import config
 from shellsmith.types import JSON
-from shellsmith.utils import base64_encoded
+from shellsmith.utils import base64_encode, base64_encoded
 
 
 class AsyncClient:
@@ -77,11 +78,17 @@ class AsyncClient:
 
     # ─────────────────────────────────── Shells ───────────────────────────────────────
 
-    async def get_shells(self) -> dict:
+    async def get_shells(
+        self, *, limit: int | None = None, cursor: str | None = None
+    ) -> dict:
         """Retrieves all Shells from the AAS server.
 
         Corresponds to:
         GET /shells
+
+        Args:
+            limit: Maximum number of Shells per page, the server default if omitted.
+            cursor: Cursor of the next page, from the previous ``paging_metadata``.
 
         Returns:
             A list of dictionaries representing the Shells.
@@ -91,7 +98,12 @@ class AsyncClient:
         """
         method = "GET"
         path = "/shells"
-        response = await self._request(method=method, path=path)
+        params = {"limit": limit, "cursor": cursor}
+        response = await self._request(
+            method=method,
+            path=path,
+            params={k: v for k, v in params.items() if v is not None},
+        )
         json_response = response.json()
         return json_response
 
@@ -255,11 +267,17 @@ class AsyncClient:
 
     # ───────────────────────────────── Submodels ──────────────────────────────────────
 
-    async def get_submodels(self) -> dict:
+    async def get_submodels(
+        self, *, limit: int | None = None, cursor: str | None = None
+    ) -> dict:
         """Retrieves all Submodels from the AAS server.
 
         Corresponds to:
         GET /submodels
+
+        Args:
+            limit: Maximum number of Submodels per page, the server default if omitted.
+            cursor: Cursor of the next page, from the previous ``paging_metadata``.
 
         Returns:
             A list of dictionaries representing the Submodels.
@@ -269,7 +287,12 @@ class AsyncClient:
         """
         method = "GET"
         path = "/submodels"
-        response = await self._request(method=method, path=path)
+        params = {"limit": limit, "cursor": cursor}
+        response = await self._request(
+            method=method,
+            path=path,
+            params={k: v for k, v in params.items() if v is not None},
+        )
         return response.json()
 
     async def get_submodel(self, submodel_id: str, encode: bool = True) -> dict:
@@ -646,6 +669,41 @@ class AsyncClient:
         """Check if the AAS environment is ready for requests."""
         return await self.get_health_status(**kwargs) == "UP"
 
+    # ───────────────────────────────── Discovery ──────────────────────────────────────
+
+    async def lookup_shells(
+        self,
+        asset_ids: list[dict[str, str]],
+        *,
+        limit: int | None = None,
+        cursor: str | None = None,
+    ) -> dict:
+        """Looks up the IDs of the Shells linked to all given asset IDs.
+
+        Corresponds to:
+        GET /lookup/shells?assetIds=...
+
+        Use a client whose host is the AAS Discovery Service.
+
+        Args:
+            asset_ids: Specific asset IDs as ``{"name": ..., "value": ...}`` dicts.
+            limit: Maximum number of Shell IDs per page, the server default if omitted.
+            cursor: Cursor of the next page, from the previous ``paging_metadata``.
+
+        Returns:
+            A dictionary with the matching Shell IDs under ``result``.
+
+        Raises:
+            HTTPError: If the GET request fails.
+        """
+        method = "GET"
+        path = "/lookup/shells"
+        paging = {"limit": limit, "cursor": cursor}
+        params: dict[str, Any] = {k: v for k, v in paging.items() if v is not None}
+        params["assetIds"] = [base64_encode(json.dumps(a)) for a in asset_ids]
+        response = await self._request(method=method, path=path, params=params)
+        return response.json()
+
     # ───────────────────────────────── Upload ─────────────────────────────────────────
 
     async def upload_aas(self, path: Path | str) -> bool:
@@ -766,11 +824,17 @@ class Client:
 
     # ─────────────────────────────────── Shells ───────────────────────────────────────
 
-    def get_shells(self) -> dict:
+    def get_shells(
+        self, *, limit: int | None = None, cursor: str | None = None
+    ) -> dict:
         """Retrieves all Shells from the AAS server.
 
         Corresponds to:
         GET /shells
+
+        Args:
+            limit: Maximum number of Shells per page, the server default if omitted.
+            cursor: Cursor of the next page, from the previous ``paging_metadata``.
 
         Returns:
             A list of dictionaries representing the Shells.
@@ -780,7 +844,12 @@ class Client:
         """
         method = "GET"
         path = "/shells"
-        response = self._request(method=method, path=path)
+        params = {"limit": limit, "cursor": cursor}
+        response = self._request(
+            method=method,
+            path=path,
+            params={k: v for k, v in params.items() if v is not None},
+        )
         json_response = response.json()
         return json_response
 
@@ -942,11 +1011,17 @@ class Client:
 
     # ───────────────────────────────── Submodels ──────────────────────────────────────
 
-    def get_submodels(self) -> dict:
+    def get_submodels(
+        self, *, limit: int | None = None, cursor: str | None = None
+    ) -> dict:
         """Retrieves all Submodels from the AAS server.
 
         Corresponds to:
         GET /submodels
+
+        Args:
+            limit: Maximum number of Submodels per page, the server default if omitted.
+            cursor: Cursor of the next page, from the previous ``paging_metadata``.
 
         Returns:
             A list of dictionaries representing the Submodels.
@@ -956,7 +1031,12 @@ class Client:
         """
         method = "GET"
         path = "/submodels"
-        response = self._request(method=method, path=path)
+        params = {"limit": limit, "cursor": cursor}
+        response = self._request(
+            method=method,
+            path=path,
+            params={k: v for k, v in params.items() if v is not None},
+        )
         return response.json()
 
     def get_submodel(self, submodel_id: str, encode: bool = True) -> dict:
@@ -1340,6 +1420,41 @@ class Client:
             **kwargs: Additional keyword arguments to pass to the request.
         """
         return self.get_health_status(**kwargs) == "UP"
+
+    # ───────────────────────────────── Discovery ──────────────────────────────────────
+
+    def lookup_shells(
+        self,
+        asset_ids: list[dict[str, str]],
+        *,
+        limit: int | None = None,
+        cursor: str | None = None,
+    ) -> dict:
+        """Looks up the IDs of the Shells linked to all given asset IDs.
+
+        Corresponds to:
+        GET /lookup/shells?assetIds=...
+
+        Use a client whose host is the AAS Discovery Service.
+
+        Args:
+            asset_ids: Specific asset IDs as ``{"name": ..., "value": ...}`` dicts.
+            limit: Maximum number of Shell IDs per page, the server default if omitted.
+            cursor: Cursor of the next page, from the previous ``paging_metadata``.
+
+        Returns:
+            A dictionary with the matching Shell IDs under ``result``.
+
+        Raises:
+            HTTPError: If the GET request fails.
+        """
+        method = "GET"
+        path = "/lookup/shells"
+        paging = {"limit": limit, "cursor": cursor}
+        params: dict[str, Any] = {k: v for k, v in paging.items() if v is not None}
+        params["assetIds"] = [base64_encode(json.dumps(a)) for a in asset_ids]
+        response = self._request(method=method, path=path, params=params)
+        return response.json()
 
     # ───────────────────────────────── Upload ─────────────────────────────────────────
 

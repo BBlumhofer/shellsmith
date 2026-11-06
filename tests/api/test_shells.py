@@ -99,3 +99,12 @@ def test_post_and_delete_submodel_ref(semitrailer):
     shellsmith.delete_submodel_ref(shell_id, test_submodel_id)
     refs = shellsmith.get_submodel_refs(shell_id)["result"]
     assert all(ref["keys"][0]["value"] != test_submodel_id for ref in refs)
+
+
+def test_get_shells_pages_with_limit_and_cursor(semitrailer, workpiece_carrier_a1):
+    first = shellsmith.get_shells(limit=1)
+    assert len(first["result"]) == 1
+    cursor = first["paging_metadata"]["cursor"]
+    second = shellsmith.get_shells(limit=1, cursor=cursor)
+    ids = {first["result"][0]["id"], second["result"][0]["id"]}
+    assert ids == {semitrailer.id, workpiece_carrier_a1.id}
